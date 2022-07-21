@@ -15,8 +15,44 @@ class BookingController extends Controller
         // checking first to see if user provided a correct token and is authenticated
         $user = Auth::user();
         if (!$user) return response()->json(["message" => "Unauthorized"], 401);
-        // validate user input
-        // using start and end point,get busses with their seats that are not booked and available seats not equal zero
+        // validate user input for start point and end point
+        $validate = BookingRequest::validateBookingRequest($request->toArray());
+        if ($validate) return $validate;
+        // get all trips from this start point and end point with different busses
+        $trips = Trip::where('start_point', $request['start_point'])->where('end_point', $request['end_point'])
+            ->where('available_seats', '>', 0)->get();
+
+        $seats = [];
+        // trip with each bus
+        foreach ($trips as $trip) {
+            $availableBus = true;
+            $startPointOrder = $trip->start_point_order;
+            $endPointOrder = $trip->end_point_order;
+            // getting trips in between for this bus to make sure they are available as well
+            $tripsInBetween = Trip::where('bus_id', $trip['bus_id'])->where('start_point_order', '>=', $startPointOrder)->where('end_point_order', '<=', $endPointOrder)->get();
+            // check to see if there is an available seats on all trips from start to end point on this bus
+            foreach ($tripsInBetween as $tripInBetween) {
+                // if there is a trip in between on this bus not available,whole bus is not available with no seats
+                if ($tripInBetween->available_seats <= 0) $availableBus = false;
+            }
+            // when we made sure that whole trip on bus is available,we proceed to return seats of this bus
+            if ($availableBus) {
+                $tripSeats = $trip['bus']['seats'];
+                foreach ($tripSeats as $seatObject) {
+                    if (!$seatObject['booked']) {
+                        $seat['seat_id'] = $seatObject['id'];
+                        $seat['bus_id'] = $trip['bus']['id'];
+                        $seat['start_point'] = $trip['start_point'];
+                        $seat['end_point'] = $trip['end_point'];
+                        $seats[] = $seat;
+                    }
+                }
+            }
+
+        }
+        return response()->json(["Seats" => $seats], 200);
+
+
     }
 
     public function bookSeat($id, Request $request)
@@ -50,7 +86,7 @@ class BookingController extends Controller
             ->decrement('available_seats', 1);
         // we update seat in database with user_id and make it booked
         $seat->update(['user_id' => $user->id, 'booked' => 1]);
-        return response()->json(["message" => "Seat booked Succesfully", "data" => $seat], 200);
+        return response()->json(["message" => "Seat booked Successfully", "data" => $seat], 200);
 
 
     }
