@@ -26,7 +26,7 @@ return new class extends Migration {
 
         // creating foreign key user_id to reference user that booked this seat if it is booked
         Schema::table('seats', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->nullable()->constrained('users');
         });
     }
 
