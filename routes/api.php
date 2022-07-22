@@ -26,6 +26,6 @@ Route::controller(AuthController::class)->group(function () {
 // routes for getting and booking seats for authenticated users
 
 Route::controller(BookingController::class)->group(function () {
-    Route::post('seats', 'getSeats');
+    Route::get('seats', 'getSeats');
     Route::post('book/{id}', 'bookSeat');
 });
