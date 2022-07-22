@@ -71,7 +71,7 @@ To start up the application,kindly follow the following steps:
 
 3) run 'php artisan migrate' to create tables needed for project.
 
-4) run 'php artisan db:seed' to populate database with initial data (you can also use import.sql as a dump file for database provided in repo)
+4) run 'php artisan db:seed' to populate database with initial data (you can also use bookingdump.sql as a dump file for database provided in repo)
 
 5) run 'php artisan jwt:secret' to create jwt secret key (for authentication) that will be saved automatically in .env file
 
